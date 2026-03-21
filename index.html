@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
@@ -39,8 +39,13 @@
       }
 
       .info_box {
-        height: 100px;
+        height: 48px;
         width: 100%;
+      }
+
+      .info_box_content {
+        font-size: 24px;
+        text-align: center;
       }
       #sticker-panel {
         width: 100%;
@@ -82,7 +87,10 @@
         border-radius: 12px;
         background: rgba(255, 255, 255, 0.7);
         /* border: 1.5px solid rgba(220, 170, 220, 0.3); */
-        transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s,
+          border-color 0.15s;
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
       }
@@ -110,7 +118,7 @@
         justify-content: center;
         overflow: hidden;
         position: relative;
-        /* padding: 118px 8px 8px; */
+        padding: 8px;
       }
 
       #main-canvas {
@@ -126,7 +134,8 @@
         width: 100%;
       }
       #main-canvas.drag-over {
-        box-shadow: 0 0 0 4px rgba(160, 100, 255, 0.7),
+        box-shadow:
+          0 0 0 4px rgba(160, 100, 255, 0.7),
           inset 0 0 30px rgba(160, 100, 255, 0.12);
       }
 
@@ -248,7 +257,9 @@
         cursor: pointer;
         letter-spacing: 0.5px;
         box-shadow: 0 4px 20px rgba(200, 100, 180, 0.4);
-        transition: transform 0.15s, box-shadow 0.15s;
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s;
         -webkit-tap-highlight-color: transparent;
       }
       #complete-btn:active {
@@ -328,7 +339,7 @@
 
     <script>
       const STICKERS = [
-        { src: "image/1.png", size: 730 },
+        { src: "image/1.png", size: 400 },
         { src: "image/2.png", size: 65 },
         { src: "image/3.png", size: 65 },
         { src: "image/4.png", size: 65 },
@@ -389,7 +400,7 @@
         thumb.addEventListener(
           "touchstart",
           (e) => onThumbTouchStart(e, src, size),
-          { passive: true }
+          { passive: true },
         );
       });
 
@@ -440,11 +451,11 @@
             moveGhost(t.clientX, t.clientY);
             mainCanvas.classList.toggle(
               "drag-over",
-              isOverCanvas(t.clientX, t.clientY)
+              isOverCanvas(t.clientX, t.clientY),
             );
           }
         },
-        { passive: false }
+        { passive: false },
       );
 
       document.addEventListener("touchend", (e) => {
@@ -498,7 +509,7 @@
             moveGhost(ev.clientX, ev.clientY);
             mainCanvas.classList.toggle(
               "drag-over",
-              isOverCanvas(ev.clientX, ev.clientY)
+              isOverCanvas(ev.clientX, ev.clientY),
             );
           }
         }
@@ -530,7 +541,7 @@
       function placeSticker(src, size) {
         const r = mainCanvas.getBoundingClientRect();
         const cx = r.width / 2 - size / 2;
-        const cy = r.height / 2 - 350;
+        const cy = r.height / 2 - 200;
 
         const el = document.createElement("div");
         el.className = "placed-sticker stick-pop";
@@ -557,7 +568,7 @@
         el.addEventListener(
           "animationend",
           () => el.classList.remove("stick-pop"),
-          { once: true }
+          { once: true },
         );
 
         el.addEventListener("pointerdown", (ev) => {
@@ -604,11 +615,11 @@
           const h = el.offsetHeight;
           const nx = Math.max(
             -w * 0.3,
-            Math.min(r.width - w * 0.7, origLeft + dx)
+            Math.min(r.width - w * 0.7, origLeft + dx),
           );
           const ny = Math.max(
             -h * 0.3,
-            Math.min(r.height - h * 0.7, origTop + dy)
+            Math.min(r.height - h * 0.7, origTop + dy),
           );
           el.style.left = nx + "px";
           el.style.top = ny + "px";
@@ -669,7 +680,7 @@
         ctx.drawImage(mainImg, 0, 0);
 
         const placed = Array.from(
-          stickerLayer.querySelectorAll(".placed-sticker")
+          stickerLayer.querySelectorAll(".placed-sticker"),
         );
         await Promise.all(
           placed.map(
@@ -687,14 +698,14 @@
                     l * scaleX,
                     t * scaleY,
                     w * scaleX,
-                    h * scaleY
+                    h * scaleY,
                   );
                   res();
                 };
                 si.onerror = res;
                 si.src = pImg.src;
-              })
-          )
+              }),
+          ),
         );
 
         offscreen.toBlob(async (blob) => {
