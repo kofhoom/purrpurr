@@ -137,7 +137,7 @@
         width: 100%;
       }
 
-      #main-canvas .main_background_image {
+      #main-canvas .main-background-image {
         width: 100%;
         height: 100%;
       }
@@ -348,7 +348,7 @@
         <img
           src="image/main_background_image.png"
           alt=""
-          class="main_background_image"
+          class="main-background-image"
         />
         <div id="sticker-layer"></div>
       </div>
@@ -691,7 +691,7 @@
           startStickerDrag(el, ev.clientX, ev.clientY);
         });
 
-        setTimeout(() => editable.focus(), 50);
+        editable.focus();
       }
 
       function placeCustomSticker(src, w, h) {
@@ -829,32 +829,67 @@
         offscreen.height = rect.height;
         const ctx = offscreen.getContext("2d");
 
+        // 배경색
         const bgColor = getComputedStyle(mainCanvas).backgroundColor;
         ctx.fillStyle = bgColor || "#fffff0";
         ctx.fillRect(0, 0, offscreen.width, offscreen.height);
 
-        const placed = Array.from(
-          stickerLayer.querySelectorAll(".placed-sticker"),
-        );
-        await Promise.all(
-          placed.map(
-            (ps) =>
-              new Promise((res) => {
-                const pImg = ps.querySelector("img");
-                const l = parseFloat(ps.style.left) || 0;
-                const t = parseFloat(ps.style.top) || 0;
-                const w = ps.offsetWidth;
-                const h = ps.offsetHeight;
-                const si = new Image();
-                si.onload = () => {
-                  ctx.drawImage(si, l, t, w, h);
-                  res();
-                };
-                si.onerror = res;
-                si.src = pImg.src;
-              }),
-          ),
-        );
+        // 배경 이미지 (cover 방식으로 비율 유지)
+        await new Promise((res) => {
+          const bgImgEl = mainCanvas.querySelector(".main-background-image");
+          if (!bgImgEl) { res(); return; }
+          const bi = new Image();
+          bi.onload = () => {
+            const cw = offscreen.width, ch = offscreen.height;
+            const iw = bi.naturalWidth, ih = bi.naturalHeight;
+            const scale = Math.max(cw / iw, ch / ih);
+            const dw = iw * scale, dh = ih * scale;
+            ctx.drawImage(bi, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+            res();
+          };
+          bi.onerror = res;
+          bi.src = bgImgEl.src;
+        });
+
+        const placed = Array.from(stickerLayer.querySelectorAll(".placed-sticker"));
+        await Promise.all(placed.map((ps) => new Promise((res) => {
+          const l = parseFloat(ps.style.left) || 0;
+          const t = parseFloat(ps.style.top) || 0;
+          const w = ps.offsetWidth;
+          const h = ps.offsetHeight;
+
+          // 텍스트 스티커
+          if (ps.dataset.isText) {
+            const editable = ps.querySelector("[contenteditable]");
+            const text = editable ? editable.textContent.trim() : "";
+            if (text) {
+              const style = getComputedStyle(editable);
+              ctx.save();
+              ctx.font = style.fontWeight + " " + style.fontSize + " " + style.fontFamily;
+              ctx.fillStyle = style.color || "#333";
+              ctx.textBaseline = "top";
+              ctx.fillText(text, l + 8, t + 4);
+              ctx.restore();
+            }
+            res();
+            return;
+          }
+
+          const pImg = ps.querySelector("img");
+          if (!pImg) { res(); return; }
+          const si = new Image();
+          si.onload = () => {
+            const iw = si.naturalWidth, ih = si.naturalHeight;
+            if (iw === 0 || ih === 0) { ctx.drawImage(si, l, t, w, h); res(); return; }
+            // object-fit:contain 방식으로 비율 유지
+            const scale = Math.min(w / iw, h / ih);
+            const dw = iw * scale, dh = ih * scale;
+            ctx.drawImage(si, l + (w - dw) / 2, t + (h - dh) / 2, dw, dh);
+            res();
+          };
+          si.onerror = res;
+          si.src = pImg.src;
+        })));
 
         offscreen.toBlob(async (blob) => {
           const file = new File([blob], "daekku.png", { type: "image/png" });
