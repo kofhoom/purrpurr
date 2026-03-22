@@ -841,109 +841,79 @@
 
       async function captureAndShare() {
         const rect = mainCanvas.getBoundingClientRect();
-
-        // 배경 이미지 원본 크기로 캔버스 결정
-        const bgImgEl = mainCanvas.querySelector(".main-background-image");
-        const bgNatural = await new Promise((res) => {
-          if (!bgImgEl) {
-            res({ w: rect.width, h: rect.height });
-            return;
-          }
-          const bi = new Image();
-          bi.onload = () =>
-            res({ w: bi.naturalWidth, h: bi.naturalHeight, img: bi });
-          bi.onerror = () => res({ w: rect.width, h: rect.height });
-          bi.src = bgImgEl.src;
-        });
+        const dpr = window.devicePixelRatio || 1;
+        const outW = Math.round(rect.width * dpr);
+        const outH = Math.round(rect.height * dpr);
 
         const offscreen = document.createElement("canvas");
-        offscreen.width = bgNatural.w;
-        offscreen.height = bgNatural.h;
+        offscreen.width = outW;
+        offscreen.height = outH;
         const ctx = offscreen.getContext("2d");
+        ctx.scale(dpr, dpr);
 
         // 배경색
         const bgColor = getComputedStyle(mainCanvas).backgroundColor;
         ctx.fillStyle = bgColor || "#fffff0";
-        ctx.fillRect(0, 0, offscreen.width, offscreen.height);
+        ctx.fillRect(0, 0, rect.width, rect.height);
 
-        // 배경 이미지 (원본 크기 그대로)
-        if (bgNatural.img) {
-          ctx.drawImage(bgNatural.img, 0, 0, offscreen.width, offscreen.height);
-        }
+        // 배경 이미지 (화면에 보이는 그대로 cover)
+        await new Promise((res) => {
+          const bgImgEl = mainCanvas.querySelector(".main-background-image");
+          if (!bgImgEl) { res(); return; }
+          const bi = new Image();
+          bi.onload = () => {
+            const iw = bi.naturalWidth, ih = bi.naturalHeight;
+            const scale = Math.max(rect.width / iw, rect.height / ih);
+            const dw = iw * scale, dh = ih * scale;
+            ctx.drawImage(bi, (rect.width - dw) / 2, (rect.height - dh) / 2, dw, dh);
+            res();
+          };
+          bi.onerror = res;
+          bi.src = bgImgEl.src;
+        });
 
-        // CSS 화면 크기 → 원본 크기 스케일 비율
-        const scaleX = offscreen.width / rect.width;
-        const scaleY = scaleX; // width 기준 단일 스케일로 찌그러짐 방지
+        // 스티커 & 텍스트
+        const placed = Array.from(stickerLayer.querySelectorAll(".placed-sticker"));
+        await Promise.all(placed.map((ps) => new Promise((res) => {
+          const l = parseFloat(ps.style.left) || 0;
+          const t = parseFloat(ps.style.top) || 0;
+          const w = ps.offsetWidth;
+          const h = ps.offsetHeight;
 
-        const placed = Array.from(
-          stickerLayer.querySelectorAll(".placed-sticker"),
-        );
-        await Promise.all(
-          placed.map(
-            (ps) =>
-              new Promise((res) => {
-                const l = (parseFloat(ps.style.left) || 0) * scaleX;
-                const t = (parseFloat(ps.style.top) || 0) * scaleY;
-                const w = ps.offsetWidth * scaleX;
-                const h = ps.offsetHeight * scaleY;
+          if (ps.dataset.isText) {
+            const editable = ps.querySelector("[contenteditable]");
+            const text = editable ? (editable.innerText || editable.textContent || "").trim() : "";
+            if (text) {
+              const style = getComputedStyle(editable);
+              const fontSize = parseFloat(style.fontSize);
+              const lineHeight = fontSize * 1.3;
+              ctx.save();
+              ctx.font = style.fontWeight + " " + fontSize + "px " + style.fontFamily;
+              ctx.fillStyle = style.color || "#333";
+              ctx.textBaseline = "top";
+              text.split("\n").forEach((line, i) => {
+                ctx.fillText(line, l + 8, t + 4 + i * lineHeight);
+              });
+              ctx.restore();
+            }
+            res();
+            return;
+          }
 
-                // 텍스트 스티커
-                if (ps.dataset.isText) {
-                  const editable = ps.querySelector("[contenteditable]");
-                  const text = editable
-                    ? (editable.innerText || editable.textContent || "").trim()
-                    : "";
-                  if (text) {
-                    const style = getComputedStyle(editable);
-                    const fontSize = parseFloat(style.fontSize) * scaleX;
-                    const lineHeight = fontSize * 1.3;
-                    ctx.save();
-                    ctx.font =
-                      style.fontWeight +
-                      " " +
-                      fontSize +
-                      "px " +
-                      style.fontFamily;
-                    ctx.fillStyle = style.color || "#333";
-                    ctx.textBaseline = "top";
-                    text.split("\n").forEach((line, i) => {
-                      ctx.fillText(
-                        line,
-                        l + 8 * scaleX,
-                        t + 4 * scaleY + i * lineHeight,
-                      );
-                    });
-                    ctx.restore();
-                  }
-                  res();
-                  return;
-                }
-
-                const pImg = ps.querySelector("img");
-                if (!pImg) {
-                  res();
-                  return;
-                }
-                const si = new Image();
-                si.onload = () => {
-                  const iw = si.naturalWidth,
-                    ih = si.naturalHeight;
-                  if (iw === 0 || ih === 0) {
-                    ctx.drawImage(si, l, t, w, h);
-                    res();
-                    return;
-                  }
-                  const scale = Math.min(w / iw, h / ih);
-                  const dw = iw * scale,
-                    dh = ih * scale;
-                  ctx.drawImage(si, l + (w - dw) / 2, t + (h - dh) / 2, dw, dh);
-                  res();
-                };
-                si.onerror = res;
-                si.src = pImg.src;
-              }),
-          ),
-        );
+          const pImg = ps.querySelector("img");
+          if (!pImg) { res(); return; }
+          const si = new Image();
+          si.onload = () => {
+            const iw = si.naturalWidth, ih = si.naturalHeight;
+            if (iw === 0 || ih === 0) { ctx.drawImage(si, l, t, w, h); res(); return; }
+            const scale = Math.min(w / iw, h / ih);
+            const dw = iw * scale, dh = ih * scale;
+            ctx.drawImage(si, l + (w - dw) / 2, t + (h - dh) / 2, dw, dh);
+            res();
+          };
+          si.onerror = res;
+          si.src = pImg.src;
+        })));
 
         offscreen.toBlob(async (blob) => {
           const file = new File([blob], "Dreamy Dream 스티커북.png", {
