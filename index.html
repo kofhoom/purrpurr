@@ -22,12 +22,12 @@
 
       body {
         font-family: "GA", sans-serif;
-        background: linear-gradient(
+        /* background: linear-gradient(
           135deg,
           #fce4ec 0%,
           #e8f4f8 50%,
           #f3e5f5 100%
-        );
+        ); */
         height: 100vh;
         height: 100dvh;
         display: flex;
@@ -121,7 +121,7 @@
         justify-content: center;
         overflow: hidden;
         position: relative;
-        padding: 8px;
+        /* padding: 8px; */
       }
 
       #main-canvas {
@@ -132,9 +132,14 @@
         overflow: hidden;
         flex-shrink: 0;
         transition: box-shadow 0.2s ease;
-        background-color: #fffff0;
+        /* background-color: #fffff0; */
         height: 100%;
         width: 100%;
+      }
+
+      #main-canvas .main_background_image {
+        width: 100%;
+        height: 100%;
       }
       #main-canvas.drag-over {
         box-shadow:
@@ -165,7 +170,7 @@
         z-index: 20;
         pointer-events: none;
         border-radius: 14px;
-        background-color: #fffff7;
+        /* background-color: #fffff7; */
       }
 
       .placed-sticker {
@@ -196,7 +201,7 @@
       .delete-btn {
         position: absolute;
         top: -10px;
-        right: -10px;
+        right: -32px;
         width: 24px;
         height: 24px;
         background: rgba(255, 60, 60, 0.95);
@@ -243,20 +248,21 @@
         justify-content: center;
         background: transparent;
         backdrop-filter: blur(12px);
+        flex-shrink: 0;
         -webkit-backdrop-filter: blur(12px);
         flex-shrink: 0;
       }
 
       #complete-btn {
         font-family: "GA", sans-serif;
-        width: 32%;
+        width: 39%;
         max-width: 320px;
         padding: 5px 0;
-        background: #fff;
-        color: #d4a0e8;
+        background: #ffcbe7;
+        color: #ffffff;
         font-size: 20px;
         /* font-weight: 700; */
-        border: 1px solid #f0a0c0;
+        border: 1px solid #ecb7ff;
         border-radius: 10px;
         cursor: pointer;
         letter-spacing: 0.5px;
@@ -316,6 +322,15 @@
         user-select: none;
         -webkit-touch-callout: none;
       }
+
+      .co-info-box {
+        font-size: 10px;
+        text-align: center !important;
+        width: 100%;
+        display: inline-block;
+        padding: 10px;
+        font-family: sans-serif;
+      }
     </style>
   </head>
   <body>
@@ -330,20 +345,29 @@
 
     <div id="canvas-area">
       <div id="main-canvas">
-        <!-- <img id="main-img" src="image/3.png" alt="" draggable="false" /> -->
-        <div id="sticker-layer" id="main-img"></div>
+        <img
+          src="image/main_background_image.png"
+          alt=""
+          class="main_background_image"
+        />
+        <div id="sticker-layer"></div>
       </div>
     </div>
 
     <div id="bottom-bar">
-      <button id="complete-btn">저장하기 ♪</button>
+      <button id="complete-btn">✩ 저장/공유하기 ✩</button>
     </div>
-
+    <div class="co-info-box">
+      <p>
+        푸르푸르의 제품 또는 디자인을 무단으로 모방 또는 도용하여<br />
+        제작, 판매하는 경우 법적인 책임을 물을 수 있습니다.
+      </p>
+      <p>ⓒ 2025. PURRPURR. all rights reserved.</p>
+    </div>
     <div id="ghost"><img id="ghost-img" alt="" draggable="false" /></div>
 
     <script>
       const STICKERS = [
-        { src: "image/1.png", size: 400 },
         { src: "image/2.png", size: 65 },
         { src: "image/3.png", size: 65 },
         { src: "image/4.png", size: 65 },
@@ -377,6 +401,18 @@
       const ghost = document.getElementById("ghost");
       const ghostImg = document.getElementById("ghost-img");
       const completeBtn = document.getElementById("complete-btn");
+
+      // 텍스트 입력 버튼 (스티커 목록 첫번째)
+      const textThumb = document.createElement("div");
+      textThumb.className = "sticker-thumb";
+      textThumb.style.cssText =
+        "font-size: 21px; color: rgb(157 216 255); justify-content: center; align-items: center; flex-direction: column; gap: 2px; line-height: 0.7; background: #ffe9f9a3; border-radius: 50%;";
+      textThumb.innerHTML = `<span style="font-size: 28px;position: relative;top: 9px;">TEXT</span><span style="font-size: 28px;position: relative;top: 9px;">텍스트</span>`;
+      textThumb.addEventListener("pointerdown", (e) => {
+        e.stopPropagation();
+        placeTextSticker();
+      });
+      stickerScroll.prepend(textThumb);
 
       STICKERS.forEach(({ src, size }, index) => {
         const thumb = document.createElement("div");
@@ -468,7 +504,7 @@
           const t = e.changedTouches[0];
           if (isOverCanvas(t.clientX, t.clientY)) {
             placeSticker(panelDrag.src, panelDrag.size);
-            spawnSparkles(t.clientX, t.clientY);
+            // spawnSparkles(t.clientX, t.clientY);
           }
           hideGhost();
         } else {
@@ -526,7 +562,7 @@
           if (mode === "ghost" && panelDrag && panelDrag.active) {
             if (isOverCanvas(ev.clientX, ev.clientY)) {
               placeSticker(src, size);
-              spawnSparkles(ev.clientX, ev.clientY);
+              // spawnSparkles(ev.clientX, ev.clientY);
             }
             hideGhost();
           } else if (Math.abs(dx) < 5 && Math.abs(dy) < 5 && src) {
@@ -544,16 +580,18 @@
 
       function placeSticker(src, size) {
         const r = mainCanvas.getBoundingClientRect();
-        const cx = r.width / 2 - size / 2;
+        const isFirst = src === "image/1.png";
+        const w = isFirst ? size / 2 : size;
+        const cx = r.width / 2 - w / 2;
         const cy = r.height / 2 - 200;
 
         const el = document.createElement("div");
         el.className = "placed-sticker stick-pop";
-        el.style.cssText = `left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;--r:0deg;z-index:20;`;
+        el.style.cssText = `left:${cx}px;top:${cy}px;width:${w}px;height:${size}px;--r:0deg;z-index:20;`;
 
         const img = document.createElement("img");
         img.src = src;
-        img.style.cssText = `width:${size}px;height:${size}px;object-fit:contain;`;
+        img.style.cssText = `width:${w}px;height:${size}px;object-fit:contain;`;
         img.draggable = false;
         el.appendChild(img);
 
@@ -575,6 +613,119 @@
           { once: true },
         );
 
+        el.addEventListener("pointerdown", (ev) => {
+          if (ev.target === del) return;
+          ev.stopPropagation();
+          ev.preventDefault();
+          selectSticker(el);
+          startStickerDrag(el, ev.clientX, ev.clientY);
+        });
+      }
+
+      function placeTextSticker() {
+        const r = mainCanvas.getBoundingClientRect();
+        const el = document.createElement("div");
+        el.className = "placed-sticker stick-pop";
+        el.style.cssText = `left:${r.width / 2 - 60}px;top:${r.height / 2 - 20}px;width:auto;height:auto;min-width:80px;--r:0deg;z-index:20;padding:4px 8px;white-space:nowrap;`;
+        el.dataset.isText = "true";
+
+        const editable = document.createElement("div");
+        editable.contentEditable = "true";
+        editable.style.cssText =
+          "font-size:20px;color:#333;outline:none;min-width:60px;min-height:1em;cursor:text;user-select:text;";
+        editable.setAttribute("placeholder", "텍스트 입력...");
+        el.appendChild(editable);
+
+        const del = document.createElement("div");
+        del.className = "delete-btn";
+        del.innerHTML = "&times;";
+        del.addEventListener("pointerdown", (ev) => {
+          ev.stopPropagation();
+          ev.preventDefault();
+          if (selectedSticker === el) selectedSticker = null;
+          el.remove();
+        });
+        el.appendChild(del);
+
+        stickerLayer.appendChild(el);
+        el.addEventListener(
+          "animationend",
+          () => el.classList.remove("stick-pop"),
+          { once: true },
+        );
+
+        function enterEditMode() {
+          editable.contentEditable = "true";
+          editable.style.cursor = "text";
+          el.style.cursor = "text";
+          setTimeout(() => editable.focus(), 10);
+        }
+        function exitEditMode() {
+          editable.contentEditable = "false";
+          editable.style.cursor = "grab";
+          el.style.cursor = "grab";
+        }
+
+        editable.addEventListener("blur", () => {
+          if (!editable.textContent.trim()) {
+            el.remove();
+            return;
+          }
+          exitEditMode();
+        });
+
+        el.addEventListener("dblclick", (ev) => {
+          ev.stopPropagation();
+          enterEditMode();
+        });
+
+        el.addEventListener("pointerdown", (ev) => {
+          if (ev.target === del) return;
+          if (editable.contentEditable === "true") {
+            ev.stopPropagation();
+            return;
+          }
+          ev.stopPropagation();
+          ev.preventDefault();
+          selectSticker(el);
+          startStickerDrag(el, ev.clientX, ev.clientY);
+        });
+
+        setTimeout(() => editable.focus(), 50);
+      }
+
+      function placeCustomSticker(src, w, h) {
+        const r = mainCanvas.getBoundingClientRect();
+        const cx = r.width / 2 - w / 2;
+        const cy = r.height / 2 - h / 2;
+
+        const el = document.createElement("div");
+        el.className = "placed-sticker stick-pop";
+        el.style.cssText = `left:${cx}px;top:${cy}px;width:${w}px;height:${h}px;--r:0deg;z-index:20;`;
+
+        const img = document.createElement("img");
+        img.src = src;
+        img.style.cssText = `width:${w}px;height:${h}px;object-fit:contain;`;
+        img.draggable = false;
+        el.appendChild(img);
+
+        const del = document.createElement("div");
+        del.className = "delete-btn";
+        del.innerHTML = "&times;";
+        del.addEventListener("pointerdown", (ev) => {
+          ev.stopPropagation();
+          ev.preventDefault();
+          if (selectedSticker === el) selectedSticker = null;
+          el.remove();
+        });
+        el.appendChild(del);
+
+        stickerLayer.appendChild(el);
+        el.addEventListener(
+          "animationend",
+          () => el.classList.remove("stick-pop"),
+          { once: true },
+        );
         el.addEventListener("pointerdown", (ev) => {
           if (ev.target === del) return;
           ev.stopPropagation();
@@ -638,30 +789,30 @@
         document.addEventListener("pointerup", onUp, { once: true });
       }
 
-      function spawnSparkles(cx, cy) {
-        const emojis = ["✨", "⭐", "💫", "🌟", "🩷"];
-        for (let i = 0; i < 6; i++) {
-          const s = document.createElement("div");
-          s.className = "sparkle";
-          const angle = Math.random() * Math.PI * 2;
-          const dist = 30 + Math.random() * 50;
-          const dist2 = dist + 20 + Math.random() * 30;
-          s.style.cssText =
-            `left:${cx}px;top:${cy}px;` +
-            `--tx:${Math.cos(angle) * dist}px;--ty:${
-              Math.sin(angle) * dist
-            }px;` +
-            `--tx2:${Math.cos(angle) * dist2}px;--ty2:${
-              Math.sin(angle) * dist2
-            }px;` +
-            `animation-delay:${Math.random() * 0.2}s;font-size:${
-              16 + Math.random() * 12
-            }px;`;
-          s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-          document.body.appendChild(s);
-          s.addEventListener("animationend", () => s.remove());
-        }
-      }
+      // function spawnSparkles(cx, cy) {
+      //   const emojis = ["✨", "⭐", "💫", "🌟", "🩷"];
+      //   for (let i = 0; i < 6; i++) {
+      //     const s = document.createElement("div");
+      //     s.className = "sparkle";
+      //     const angle = Math.random() * Math.PI * 2;
+      //     const dist = 30 + Math.random() * 50;
+      //     const dist2 = dist + 20 + Math.random() * 30;
+      //     s.style.cssText =
+      //       `left:${cx}px;top:${cy}px;` +
+      //       `--tx:${Math.cos(angle) * dist}px;--ty:${
+      //         Math.sin(angle) * dist
+      //       }px;` +
+      //       `--tx2:${Math.cos(angle) * dist2}px;--ty2:${
+      //         Math.sin(angle) * dist2
+      //       }px;` +
+      //       `animation-delay:${Math.random() * 0.2}s;font-size:${
+      //         16 + Math.random() * 12
+      //       }px;`;
+      //     s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      //     document.body.appendChild(s);
+      //     s.addEventListener("animationend", () => s.remove());
+      //   }
+      // }
 
       completeBtn.addEventListener("click", async () => {
         if (selectedSticker) {
@@ -672,16 +823,15 @@
       });
 
       async function captureAndShare() {
-        const mainImg = document.getElementById("main-img");
-        const offscreen = document.createElement("canvas");
         const rect = mainCanvas.getBoundingClientRect();
-        const scaleX = mainImg.naturalWidth / rect.width;
-        const scaleY = mainImg.naturalHeight / rect.height;
-        offscreen.width = mainImg.naturalWidth;
-        offscreen.height = mainImg.naturalHeight;
+        const offscreen = document.createElement("canvas");
+        offscreen.width = rect.width;
+        offscreen.height = rect.height;
         const ctx = offscreen.getContext("2d");
 
-        ctx.drawImage(mainImg, 0, 0);
+        const bgColor = getComputedStyle(mainCanvas).backgroundColor;
+        ctx.fillStyle = bgColor || "#fffff0";
+        ctx.fillRect(0, 0, offscreen.width, offscreen.height);
 
         const placed = Array.from(
           stickerLayer.querySelectorAll(".placed-sticker"),
@@ -697,13 +847,7 @@
                 const h = ps.offsetHeight;
                 const si = new Image();
                 si.onload = () => {
-                  ctx.drawImage(
-                    si,
-                    l * scaleX,
-                    t * scaleY,
-                    w * scaleX,
-                    h * scaleY,
-                  );
+                  ctx.drawImage(si, l, t, w, h);
                   res();
                 };
                 si.onerror = res;
