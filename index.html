@@ -128,16 +128,14 @@
         position: relative;
         z-index: 10;
         /* filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.18)); */
-        border-radius: 14px;
+        /* border-radius: 14px; */
         overflow: hidden;
         flex-shrink: 0;
         transition: box-shadow 0.2s ease;
         /* background-color: #fffff0; */
         height: 100%;
         width: 100%;
-        border: 2px solid transparent;
-        background: linear-gradient(360deg, #bdbdbd, #d0cec8, #ededed)
-          border-box;
+
         /* border-radius: 10px; */
       }
 
@@ -146,6 +144,9 @@
         /* height: 100%; */
         display: block;
         /* margin: 0 auto; */
+        border: 2px solid transparent;
+        background: linear-gradient(360deg, #bdbdbd, #d0cec8, #ededed)
+          border-box;
       }
       #main-canvas.drag-over {
         box-shadow:
