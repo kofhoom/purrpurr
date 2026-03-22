@@ -955,9 +955,13 @@
         );
 
         offscreen.toBlob(async (blob) => {
-          const file = new File([blob], "Dreamy Dream 스티커북.png", {
-            type: "image/png",
-          });
+          const file = new File(
+            [blob],
+            "[푸르푸르] ✩ Dreamy Dream 스티커북 이벤트 ✩.png",
+            {
+              type: "image/png",
+            },
+          );
           if (
             navigator.share &&
             navigator.canShare &&
@@ -966,7 +970,8 @@
             try {
               await navigator.share({
                 files: [file],
-                title: "레터 페어리즈 다꾸",
+                title:
+                  "[푸르푸르] ✩ Dreamy Dream 스티커북 이벤트 ✩\nhttps://www.instagram.com/purr.purr.rrrr?igsh=MXIzbGU0NTQ5ZmZrcw==",
               });
             } catch (e) {
               if (e.name !== "AbortError") fallbackDownload(blob);
@@ -981,7 +986,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "daekku.png";
+        a.download = "[푸르푸르] ✩ Dreamy Dream 스티커북 이벤트 ✩.png";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
