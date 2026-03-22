@@ -135,7 +135,7 @@
         /* background-color: #fffff0; */
         height: 100%;
         width: 100%;
-        padding: 10px;
+        /* padding: 10px; */
         /* border-radius: 10px; */
       }
 
@@ -144,9 +144,7 @@
         /* height: 100%; */
         display: block;
         /* margin: 0 auto; */
-        border: 2px solid transparent;
-        background: linear-gradient(360deg, #bdbdbd, #d0cec8, #ededed)
-          border-box;
+        border: 1px solid #ecb7ff;
       }
       #main-canvas.drag-over {
         box-shadow:
@@ -250,7 +248,7 @@
       #bottom-bar {
         width: 100%;
         max-width: 500px;
-        padding: 10px 20px 14px;
+        padding: 20px;
         display: flex;
         justify-content: center;
         background: transparent;
@@ -428,7 +426,7 @@
       const textThumb = document.createElement("div");
       textThumb.className = "sticker-thumb";
       textThumb.style.cssText =
-        "font-size: 21px; color: rgb(157 216 255); justify-content: center; align-items: center; flex-direction: column; gap: 2px; line-height: 0.7; background: #ffe9f9a3; border-radius: 50%;";
+        "font-size: 21px; color: rgb(157 216 255); justify-content: center; align-items: center; flex-direction: column; gap: 2px; line-height: 0.7; background: #ffe9f9a3; border-radius: 50%; border: 1px solid #ecb7ff;";
       textThumb.innerHTML = `<span style="font-size: 28px;position: relative;top: 5px;">TEXT</span><span style="font-size: 28px;position: relative;top: 5px;">텍스트</span>`;
       textThumb.addEventListener("pointerdown", (e) => {
         e.stopPropagation();
@@ -648,7 +646,7 @@
         const r = mainCanvas.getBoundingClientRect();
         const el = document.createElement("div");
         el.className = "placed-sticker stick-pop";
-        el.style.cssText = `left:${r.width * 0.1}px;top:${r.height * 0.45}px;width:auto;height:auto;min-width:80px;--r:0deg;z-index:20;padding:4px 8px;white-space:pre-wrap;`;
+        el.style.cssText = `left:${r.width * 0.1}px;top:${r.height * 0.45}px;width:auto;height:auto;min-width:80px;--r:0deg;z-index:999;padding:4px 8px;white-space:pre-wrap;`;
         el.dataset.isText = "true";
 
         const editable = document.createElement("div");
@@ -699,6 +697,19 @@
         el.addEventListener("dblclick", (ev) => {
           ev.stopPropagation();
           enterEditMode();
+        });
+
+        // 모바일 더블탭으로 재편집
+        let lastTap = 0;
+        el.addEventListener("touchend", (ev) => {
+          if (ev.target === del) return;
+          if (editable.contentEditable === "true") return;
+          const now = Date.now();
+          if (now - lastTap < 350) {
+            ev.preventDefault();
+            enterEditMode();
+          }
+          lastTap = now;
         });
 
         el.addEventListener("pointerdown", (ev) => {
@@ -887,6 +898,16 @@
           bi.onerror = res;
           bi.src = bgImgEl.src;
         });
+
+        // 배경 이미지 보더
+        const bgBorderEl = mainCanvas.querySelector(".main-background-image");
+        if (bgBorderEl) {
+          const bgStyle = getComputedStyle(bgBorderEl);
+          const bw = parseFloat(bgStyle.borderWidth) || 1;
+          ctx.strokeStyle = bgStyle.borderColor || "#ecb7ff";
+          ctx.lineWidth = bw;
+          ctx.strokeRect(bw / 2, bw / 2, rect.width - bw, rect.height - bw);
+        }
 
         const placed = Array.from(
           stickerLayer.querySelectorAll(".placed-sticker"),
