@@ -33,7 +33,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        overflow: hidden;
+        /* overflow: hidden; */
         user-select: none;
         -webkit-user-select: none;
       }
@@ -119,7 +119,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        overflow: hidden;
+        /* overflow: hidden; */
         position: relative;
         /* padding: 8px; */
       }
@@ -138,10 +138,10 @@
       }
 
       #main-canvas .main-background-image {
-        /* width: 100%; */
-        height: 100%;
+        width: 100%;
+        /* height: 100%; */
         display: block;
-        margin: 0 auto;
+        /* margin: 0 auto; */
       }
       #main-canvas.drag-over {
         box-shadow:
@@ -859,13 +859,24 @@
         // 배경 이미지 (화면에 보이는 그대로 cover)
         await new Promise((res) => {
           const bgImgEl = mainCanvas.querySelector(".main-background-image");
-          if (!bgImgEl) { res(); return; }
+          if (!bgImgEl) {
+            res();
+            return;
+          }
           const bi = new Image();
           bi.onload = () => {
-            const iw = bi.naturalWidth, ih = bi.naturalHeight;
+            const iw = bi.naturalWidth,
+              ih = bi.naturalHeight;
             const scale = Math.max(rect.width / iw, rect.height / ih);
-            const dw = iw * scale, dh = ih * scale;
-            ctx.drawImage(bi, (rect.width - dw) / 2, (rect.height - dh) / 2, dw, dh);
+            const dw = iw * scale,
+              dh = ih * scale;
+            ctx.drawImage(
+              bi,
+              (rect.width - dw) / 2,
+              (rect.height - dh) / 2,
+              dw,
+              dh,
+            );
             res();
           };
           bi.onerror = res;
@@ -873,47 +884,70 @@
         });
 
         // 스티커 & 텍스트
-        const placed = Array.from(stickerLayer.querySelectorAll(".placed-sticker"));
-        await Promise.all(placed.map((ps) => new Promise((res) => {
-          const l = parseFloat(ps.style.left) || 0;
-          const t = parseFloat(ps.style.top) || 0;
-          const w = ps.offsetWidth;
-          const h = ps.offsetHeight;
+        const placed = Array.from(
+          stickerLayer.querySelectorAll(".placed-sticker"),
+        );
+        await Promise.all(
+          placed.map(
+            (ps) =>
+              new Promise((res) => {
+                const l = parseFloat(ps.style.left) || 0;
+                const t = parseFloat(ps.style.top) || 0;
+                const w = ps.offsetWidth;
+                const h = ps.offsetHeight;
 
-          if (ps.dataset.isText) {
-            const editable = ps.querySelector("[contenteditable]");
-            const text = editable ? (editable.innerText || editable.textContent || "").trim() : "";
-            if (text) {
-              const style = getComputedStyle(editable);
-              const fontSize = parseFloat(style.fontSize);
-              const lineHeight = fontSize * 1.3;
-              ctx.save();
-              ctx.font = style.fontWeight + " " + fontSize + "px " + style.fontFamily;
-              ctx.fillStyle = style.color || "#333";
-              ctx.textBaseline = "top";
-              text.split("\n").forEach((line, i) => {
-                ctx.fillText(line, l + 8, t + 4 + i * lineHeight);
-              });
-              ctx.restore();
-            }
-            res();
-            return;
-          }
+                if (ps.dataset.isText) {
+                  const editable = ps.querySelector("[contenteditable]");
+                  const text = editable
+                    ? (editable.innerText || editable.textContent || "").trim()
+                    : "";
+                  if (text) {
+                    const style = getComputedStyle(editable);
+                    const fontSize = parseFloat(style.fontSize);
+                    const lineHeight = fontSize * 1.3;
+                    ctx.save();
+                    ctx.font =
+                      style.fontWeight +
+                      " " +
+                      fontSize +
+                      "px " +
+                      style.fontFamily;
+                    ctx.fillStyle = style.color || "#333";
+                    ctx.textBaseline = "top";
+                    text.split("\n").forEach((line, i) => {
+                      ctx.fillText(line, l + 8, t + 4 + i * lineHeight);
+                    });
+                    ctx.restore();
+                  }
+                  res();
+                  return;
+                }
 
-          const pImg = ps.querySelector("img");
-          if (!pImg) { res(); return; }
-          const si = new Image();
-          si.onload = () => {
-            const iw = si.naturalWidth, ih = si.naturalHeight;
-            if (iw === 0 || ih === 0) { ctx.drawImage(si, l, t, w, h); res(); return; }
-            const scale = Math.min(w / iw, h / ih);
-            const dw = iw * scale, dh = ih * scale;
-            ctx.drawImage(si, l + (w - dw) / 2, t + (h - dh) / 2, dw, dh);
-            res();
-          };
-          si.onerror = res;
-          si.src = pImg.src;
-        })));
+                const pImg = ps.querySelector("img");
+                if (!pImg) {
+                  res();
+                  return;
+                }
+                const si = new Image();
+                si.onload = () => {
+                  const iw = si.naturalWidth,
+                    ih = si.naturalHeight;
+                  if (iw === 0 || ih === 0) {
+                    ctx.drawImage(si, l, t, w, h);
+                    res();
+                    return;
+                  }
+                  const scale = Math.min(w / iw, h / ih);
+                  const dw = iw * scale,
+                    dh = ih * scale;
+                  ctx.drawImage(si, l + (w - dw) / 2, t + (h - dh) / 2, dw, dh);
+                  res();
+                };
+                si.onerror = res;
+                si.src = pImg.src;
+              }),
+          ),
+        );
 
         offscreen.toBlob(async (blob) => {
           const file = new File([blob], "Dreamy Dream 스티커북.png", {
