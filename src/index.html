@@ -82,8 +82,8 @@
 
       .sticker-thumb {
         flex-shrink: 0;
-        width: 66px;
-        height: 66px;
+        width: calc((min(100vw, 500px) - 64px) / 5.5);
+        height: calc((min(100vw, 500px) - 64px) / 5.5);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -104,8 +104,8 @@
         box-shadow: 0 0 0 2px rgba(180, 100, 220, 0.35);
       }
       .sticker-thumb img {
-        max-width: 56px;
-        max-height: 56px;
+        max-width: 85%;
+        max-height: 85%;
         object-fit: contain;
         pointer-events: none;
         -webkit-user-drag: none;
@@ -342,7 +342,7 @@
     <div id="sticker-panel">
       <div class="info_box">
         <div class="info_box_content">
-          <p>푸르푸르의 DREAMY DREAM 스티커를 드래그 해</p>
+          <p>푸르푸르의 DREAMY DREAM 스티커를 클릭 해</p>
           <p>나만의 다꾸를 완성해 보세요 !</p>
         </div>
       </div>
@@ -423,7 +423,6 @@
       //   window.addEventListener("resize", setHeight);
       // })();
 
-      // 텍스트 입력 버튼 (스티커 목록 첫번째)
       const textThumb = document.createElement("div");
       textThumb.className = "sticker-thumb";
       textThumb.style.cssText =
