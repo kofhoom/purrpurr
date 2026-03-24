@@ -82,8 +82,8 @@
 
       .sticker-thumb {
         flex-shrink: 0;
-        width: calc((min(100vw, 500px) - 64px) / 5.5);
-        height: calc((min(100vw, 500px) - 64px) / 5.5);
+        width: 66px;
+        height: 66px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -104,8 +104,8 @@
         box-shadow: 0 0 0 2px rgba(180, 100, 220, 0.35);
       }
       .sticker-thumb img {
-        max-width: 85%;
-        max-height: 85%;
+        max-width: 56px;
+        max-height: 56px;
         object-fit: contain;
         pointer-events: none;
         -webkit-user-drag: none;
@@ -423,6 +423,7 @@
       //   window.addEventListener("resize", setHeight);
       // })();
 
+      // 텍스트 입력 버튼 (스티커 목록 첫번째)
       const textThumb = document.createElement("div");
       textThumb.className = "sticker-thumb";
       textThumb.style.cssText =
