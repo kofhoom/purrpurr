@@ -912,7 +912,7 @@
 
         const placed = Array.from(
           stickerLayer.querySelectorAll(".placed-sticker"),
-        );
+        ).sort((a, b) => (parseInt(a.style.zIndex) || 0) - (parseInt(b.style.zIndex) || 0));
         await Promise.all(
           placed.map(
             (ps) =>
